@@ -1,7 +1,6 @@
-using System;
 using Xunit;
-using AkkaPlayground;
 using FluentAssertions;
+using AkkaPlayground.MainDevice;
 
 namespace AkkaPlayground.Test
 {
@@ -17,6 +16,21 @@ namespace AkkaPlayground.Test
             var response = probe.ExpectMsg<RespondTemperature>();
             response.RequestId.Should().Be(42);
             response.Value.Should().BeNull();
+        }
+
+        [Fact]
+        public void Device_actor_must_reply_with_latest_temperature_reading()
+        {
+            var probe = CreateTestProbe();
+            var deviceActor = Sys.ActorOf(Device.Props("group", "device"));
+
+            deviceActor.Tell(new RecordTemperature(requestId: 1, value: 24.0), probe);
+            probe.ExpectMsg<TemperatureRecorded>(s => s.RequestId == 1);
+
+            deviceActor.Tell(new ReadTemperature(reguestId: 2), probe);
+            var respond = probe.ExpectMsg<RespondTemperature>();
+            respond.RequestId.Should().Be(2);
+            respond.Value.Should().Be(24.0);
         }
     }
 }
