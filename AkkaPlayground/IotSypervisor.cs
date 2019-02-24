@@ -3,7 +3,7 @@ using Akka.Event;
 
 namespace AkkaPlayground
 {
-    class IotSypervisor : UntypedActor
+    public class IotSypervisor : UntypedActor
     {
         public ILoggingAdapter Log { get; } = Context.GetLogger();
         protected override void PreStart() => Log.Info("IoT application started");

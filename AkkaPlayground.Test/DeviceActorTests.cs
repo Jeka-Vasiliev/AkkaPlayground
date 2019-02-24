@@ -28,9 +28,17 @@ namespace AkkaPlayground.Test
             probe.ExpectMsg<TemperatureRecorded>(s => s.RequestId == 1);
 
             deviceActor.Tell(new ReadTemperature(reguestId: 2), probe);
-            var respond = probe.ExpectMsg<RespondTemperature>();
-            respond.RequestId.Should().Be(2);
-            respond.Value.Should().Be(24.0);
+            var response1 = probe.ExpectMsg<RespondTemperature>();
+            response1.RequestId.Should().Be(2);
+            response1.Value.Should().Be(24.0);
+
+            deviceActor.Tell(new RecordTemperature(requestId: 3, value: 55.0), probe);
+            probe.ExpectMsg<TemperatureRecorded>(s => s.RequestId == 3);
+
+            deviceActor.Tell(new ReadTemperature(reguestId: 4), probe);
+            var response2 = probe.ExpectMsg<RespondTemperature>();
+            response2.RequestId.Should().Be(4);
+            response2.Value.Should().Be(55.0);
         }
     }
 }
