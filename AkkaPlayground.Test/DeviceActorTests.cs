@@ -1,6 +1,7 @@
 using Xunit;
 using FluentAssertions;
 using AkkaPlayground.MainDevice;
+using System;
 
 namespace AkkaPlayground.Test
 {
@@ -39,6 +40,30 @@ namespace AkkaPlayground.Test
             var response2 = probe.ExpectMsg<RespondTemperature>();
             response2.RequestId.Should().Be(4);
             response2.Value.Should().Be(55.0);
+        }
+        
+        [Fact]
+        public void Device_actor_must_reply_to_registration_requests()
+        {
+            var probe = CreateTestProbe();
+            var deviceActor = Sys.ActorOf(Device.Props("group", "device"));
+
+            deviceActor.Tell(new RequestTrackDevice("group", "device"), probe.Ref);
+            probe.ExpectMsg<DeviceRegistered>();
+            probe.LastSender.Should().Be(deviceActor);
+        }
+
+        [Fact]
+        public void Device_actor_must_ignore_wrong_registration_requests()
+        {
+            var probe = CreateTestProbe();
+            var deviceActor = Sys.ActorOf(Device.Props("group", "device"));
+
+            deviceActor.Tell(new RequestTrackDevice("wrongGroup", "device"), probe.Ref);
+            probe.ExpectNoMsg(TimeSpan.FromMilliseconds(500));
+
+            deviceActor.Tell(new RequestTrackDevice("group", "wrongDevice"), probe.Ref);
+            probe.ExpectNoMsg(TimeSpan.FromMilliseconds(500));
         }
     }
 }
